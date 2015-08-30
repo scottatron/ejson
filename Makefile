@@ -25,8 +25,14 @@ build/man/%.gz: man/%.ronn
 	mkdir -p "$(@D)"
 	$(BUNDLE_EXEC) ronn -r --pipe "$<" | gzip > "$@"
 
+docker-image: build/bin/linux-amd64
+	-docker rmi scottatron/ejson
+	docker build -t scottatron/ejson .
+	docker tag scottatron/ejson:latest scottatron/ejson:$(VERSION)
+	docker run --rm scottatron/ejson
+
 build/bin/linux-amd64: $(GOFILES) cmd/$(NAME)/version.go
-	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
+	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="linux/amd64" -ldflags="-s" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
 build/bin/darwin-amd64: $(GOFILES) cmd/$(NAME)/version.go
 	GOPATH=$(GODEP_PATH):$$GOPATH gox -osarch="darwin/amd64" -output="$@" "$(PACKAGE)/cmd/$(NAME)"
 
